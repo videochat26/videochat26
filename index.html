@@ -5,121 +5,438 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>VideoChat26</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
 <style>
 :root{
   --bg:#0b0f19;
   --panel:#0f172a;
+  --panel2:#0b1224;
   --text:#e5e7eb;
   --muted:#9ca3af;
   --border:rgba(255,255,255,.12);
+  --shadow:0 18px 45px rgba(0,0,0,.35);
   --ok:#22c55e;
+  --btn:#22c55e;
+  --btn2:#334155;
+  --danger:#ef4444;
+  --pill:rgba(255,255,255,.08);
 }
+*{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto;
-  background:var(--bg);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;
+  background:radial-gradient(1000px 500px at 30% -10%, rgba(34,197,94,.18), transparent 60%),
+             radial-gradient(900px 500px at 90% 0%, rgba(59,130,246,.14), transparent 55%),
+             var(--bg);
   color:var(--text);
 }
+
+/* Topbar */
 header{
   padding:12px;
-  background:var(--panel);
+  background:rgba(15,23,42,.92);
   border-bottom:1px solid var(--border);
   display:flex;
   justify-content:space-between;
   align-items:center;
+  position:sticky;
+  top:0;
+  backdrop-filter: blur(10px);
+  z-index:5;
 }
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:900;
+}
+.brand .logo{
+  width:34px;height:34px;border-radius:12px;
+  display:grid;place-items:center;
+  background:rgba(34,197,94,.12);
+  border:1px solid rgba(34,197,94,.25);
+  box-shadow:0 10px 25px rgba(0,0,0,.25);
+}
+#who{
+  color:var(--muted);
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:var(--pill);
+  border:1px solid var(--border);
+}
+
+/* Hero */
+.hero{
+  max-width:1100px;
+  margin:18px auto 6px;
+  padding:0 12px;
+}
+.heroCard{
+  background:rgba(15,23,42,.92);
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:16px 14px;
+  text-align:center;
+  animation:fadeUp .45s ease-out both;
+}
+.heroCard h1{
+  margin:0;
+  font-family:"Bebas Neue",system-ui;
+  letter-spacing:.8px;
+  font-size:clamp(34px, 5vw, 56px);
+}
+.heroCard p{
+  margin:6px 0 0;
+  color:var(--muted);
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* Layout */
 .wrap{
+  max-width:1100px;
+  margin:12px auto 0;
   display:grid;
-  grid-template-columns:320px 1fr;
+  grid-template-columns:360px 1fr;
   gap:12px;
   padding:12px;
 }
+@media (max-width: 980px){
+  .wrap{grid-template-columns:1fr}
+}
+
+/* Boxes */
 .box{
-  background:var(--panel);
+  background:rgba(15,23,42,.92);
   border:1px solid var(--border);
-  border-radius:14px;
+  border-radius:16px;
   overflow:hidden;
+  box-shadow:var(--shadow);
 }
 .box h3{
   margin:0;
-  padding:10px;
+  padding:12px 12px;
   border-bottom:1px solid var(--border);
-  font-size:14px;
+  font-size:13px;
+  letter-spacing:.3px;
   color:var(--muted);
+  text-transform:uppercase;
 }
-.content{padding:10px}
-input,select{
+.content{padding:12px}
+
+/* Tabs */
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:10px;
+}
+.tab{
+  flex:1;
   padding:10px;
-  border-radius:10px;
+  border-radius:12px;
   border:1px solid var(--border);
-  background:#0b1224;
+  background:rgba(11,18,36,.55);
   color:var(--text);
-  width:100%;
-  margin-bottom:8px;
-}
-button{
-  padding:10px;
-  border-radius:10px;
-  border:0;
-  background:var(--ok);
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
 }
-button.secondary{background:#334155;color:#fff}
+.tab.active{
+  background:rgba(34,197,94,.18);
+  border-color:rgba(34,197,94,.35);
+}
+
+label{
+  display:block;
+  font-size:12px;
+  color:var(--muted);
+  margin:0 0 6px;
+}
+.row2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+@media (max-width: 520px){
+  .row2{grid-template-columns:1fr}
+}
+
+input,select{
+  padding:11px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(11,18,36,.85);
+  color:var(--text);
+  width:100%;
+  margin-bottom:10px;
+  outline:none;
+}
+input:focus, select:focus{
+  border-color:rgba(34,197,94,.35);
+}
+
+button{
+  padding:11px 12px;
+  border-radius:12px;
+  border:0;
+  background:var(--btn);
+  font-weight:900;
+  cursor:pointer;
+  color:#04130a;
+}
+button.secondary{
+  background:var(--btn2);
+  color:#fff;
+  border:1px solid var(--border);
+}
+button.ghost{
+  background:transparent;
+  color:var(--text);
+  border:1px solid var(--border);
+}
+button:disabled{opacity:.55;cursor:not-allowed}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+
+.hr{
+  height:1px;
+  background:var(--border);
+  margin:12px 0;
+  opacity:.85;
+}
+
+/* Messages + video */
 #messages{
-  height:40vh;
+  height:44vh;
   overflow:auto;
   border-top:1px solid var(--border);
   border-bottom:1px solid var(--border);
-  padding:10px;
+  padding:12px;
+  background:rgba(11,18,36,.55);
+  border-radius:14px;
 }
-.msg{margin-bottom:8px}
-.meta{font-size:12px;color:var(--muted)}
-#video{height:45vh}
+.msg{margin-bottom:10px}
+.meta{font-size:12px;color:var(--muted);margin-bottom:4px}
+.bubble{
+  display:inline-block;
+  padding:10px 12px;
+  border-radius:14px;
+  border:1px solid var(--border);
+  background:rgba(15,23,42,.85);
+}
+#video{
+  height:45vh;
+  border-radius:14px;
+  overflow:hidden;
+  border:1px solid var(--border);
+  background:rgba(11,18,36,.55);
+}
+
+/* Alerts */
+.alert{
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(11,18,36,.7);
+  color:var(--text);
+  font-size:13px;
+  margin-bottom:10px;
+  display:none;
+}
+.alert.ok{border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.10)}
+.alert.err{border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.10)}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.35;
+}
 </style>
 </head>
+
 <body>
 
 <header>
-  <div style="font-weight:900">💬 VideoChat26</div>
-  <div id="who">Non loggato</div>
+  <div class="brand">
+    <div class="logo">💬</div>
+    <div style="font-weight:900">VideoChat26</div>
+  </div>
+
+  <div id="who">
+    <span class="pill" id="pillStatus">NON LOGGATO</span>
+    <span id="whoText">—</span>
+  </div>
 </header>
+
+<div class="hero">
+  <div class="heroCard">
+    <h1>BENVENUTO IN VIDEOCHAT 26</h1>
+    <p>Pronto a iniziare la tua conversazione?</p>
+  </div>
+</div>
 
 <div class="wrap">
 
-<div class="box">
-<h3>Account</h3>
-<div class="content">
-<input id="email" placeholder="Email">
-<input id="pass" type="password" placeholder="Password">
+  <!-- LEFT -->
+  <div class="box">
+    <h3>Account</h3>
+    <div class="content">
 
-<button id="signup">Registrati</button>
-<button id="login" class="secondary">Login</button>
-<button id="logout" class="secondary">Logout</button>
+      <div id="authAlert" class="alert"></div>
 
-<hr style="opacity:.2;margin:14px 0">
+      <div class="tabs">
+        <button id="tabReg" class="tab active">Registrati</button>
+        <button id="tabLogin" class="tab">Login</button>
+        <button id="tabGuest" class="tab">Ospite</button>
+      </div>
 
-<h3>Profilo</h3>
-<input id="nick" placeholder="Nick unico">
-<button id="saveProfile">Salva Nick</button>
-</div>
-</div>
+      <!-- REGISTER -->
+      <div id="panelReg">
+        <div class="row2">
+          <div>
+            <label>Email</label>
+            <input id="email" placeholder="Email">
+          </div>
+          <div>
+            <label>Password</label>
+            <input id="pass" type="password" placeholder="Password">
+          </div>
+        </div>
 
-<div class="box">
-<h3>Stanza</h3>
-<div class="content">
-<select id="room"></select>
-<button id="enter">Entra</button>
-<button id="startVideo" class="secondary">Avvia Video</button>
+        <div class="row2">
+          <div>
+            <label>Nick</label>
+            <input id="regNick" placeholder="Nick unico">
+          </div>
+          <div>
+            <label>Uomo / Donna</label>
+            <select id="regGender">
+              <option value="uomo">Uomo</option>
+              <option value="donna">Donna</option>
+            </select>
+          </div>
+        </div>
 
-<div id="messages"></div>
+        <div class="actions">
+          <button id="signup">Registrati</button>
+          <button id="goLogin" class="secondary">Vai a Login</button>
+        </div>
 
-<input id="text" placeholder="Scrivi messaggio">
-<button id="send">Invia</button>
+        <div class="small" style="margin-top:10px;">
+          Dopo la registrazione controlla l’email (anche spam). Il redirect è già impostato su GitHub Pages.
+        </div>
+      </div>
 
-<div id="video"></div>
-</div>
-</div>
+      <!-- LOGIN -->
+      <div id="panelLogin" style="display:none;">
+        <label>Email</label>
+        <input id="email2" placeholder="Email">
+
+        <label>Password</label>
+        <input id="pass2" type="password" placeholder="Password">
+
+        <div class="actions">
+          <button id="login" class="secondary">Login</button>
+          <button id="logout" class="ghost">Logout</button>
+        </div>
+      </div>
+
+      <!-- GUEST -->
+      <div id="panelGuest" style="display:none;">
+        <div class="row2">
+          <div>
+            <label>Nick ospite</label>
+            <input id="guestNick" placeholder="Nick (ospite)">
+          </div>
+          <div>
+            <label>Uomo / Donna</label>
+            <select id="guestGender">
+              <option value="uomo">Uomo</option>
+              <option value="donna">Donna</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="guestEnter">Entra come ospite</button>
+          <button id="guestNote" class="ghost" type="button" disabled>Richiede Anonymous Auth</button>
+        </div>
+
+        <div class="small" style="margin-top:10px;">
+          La modalità ospite usa <b>Supabase Anonymous Sign-In</b>. Se non è attiva, ti avviso.
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <h3 style="margin:0 0 10px 0; font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.3px;">Profilo</h3>
+
+      <div class="row2">
+        <div>
+          <label>Nick</label>
+          <input id="nick" placeholder="Nick unico">
+        </div>
+        <div>
+          <label>Uomo / Donna</label>
+          <select id="gender">
+            <option value="uomo">Uomo</option>
+            <option value="donna">Donna</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="saveProfile">Salva Profilo</button>
+      </div>
+
+      <div class="small" style="margin-top:10px;">
+        Il profilo viene salvato su tabella <b>profiles</b> con <b>nick</b> e <b>gender</b>.
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="box">
+    <h3>Stanza</h3>
+    <div class="content">
+
+      <div class="row2">
+        <div>
+          <label>Room</label>
+          <select id="room"></select>
+        </div>
+        <div style="display:flex;gap:10px;align-items:end">
+          <button id="enter" style="flex:1">Entra</button>
+          <button id="startVideo" class="secondary" style="flex:1">Avvia Video</button>
+        </div>
+      </div>
+
+      <div id="messages"></div>
+
+      <div class="row2" style="margin-top:10px;">
+        <div>
+          <label>Messaggio</label>
+          <input id="text" placeholder="Scrivi messaggio">
+        </div>
+        <div style="display:flex;align-items:end">
+          <button id="send" style="width:100%">Invia</button>
+        </div>
+      </div>
+
+      <div id="video" style="margin-top:12px;"></div>
+    </div>
+  </div>
 
 </div>
 
@@ -130,19 +447,58 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const SUPABASE_URL = "https://rslemfuzuoobslkrhqnx.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zGJKajM_m40ZAf0B301ycg_iqsTIVSr";
-
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const el=id=>document.getElementById(id);
+const el = id => document.getElementById(id);
 
-let user=null;
-let room=null;
-let channel=null;
-let jitsi=null;
+let user = null;
+let room = null;
+let channel = null;
+let jitsi = null;
 
-/* 🔐 Gestione conferma email */
+function alertBox(type, msg){
+  const box = el("authAlert");
+  box.style.display = "block";
+  box.className = "alert " + (type === "err" ? "err" : "ok");
+  box.textContent = msg;
+}
+function alertHide(){
+  const box = el("authAlert");
+  box.style.display = "none";
+  box.textContent = "";
+}
+
+function setWho(){
+  const pill = el("pillStatus");
+  const whoText = el("whoText");
+  if(!user){
+    pill.textContent = "NON LOGGATO";
+    whoText.textContent = "—";
+    return;
+  }
+  pill.textContent = "LOGGATO";
+  whoText.textContent = user.email ? user.email : "Ospite";
+}
+
+/* ===== Tabs ===== */
+function setTab(which){
+  alertHide();
+  el("tabReg").classList.toggle("active", which==="reg");
+  el("tabLogin").classList.toggle("active", which==="login");
+  el("tabGuest").classList.toggle("active", which==="guest");
+
+  el("panelReg").style.display = which==="reg" ? "block" : "none";
+  el("panelLogin").style.display = which==="login" ? "block" : "none";
+  el("panelGuest").style.display = which==="guest" ? "block" : "none";
+}
+el("tabReg").onclick = () => setTab("reg");
+el("tabLogin").onclick = () => setTab("login");
+el("tabGuest").onclick = () => setTab("guest");
+el("goLogin").onclick = () => setTab("login");
+
+/* 🔐 Gestione conferma email (exchange code) */
 try{
-  const url=new URL(window.location.href);
+  const url = new URL(window.location.href);
   if(url.searchParams.get("code")){
     await supabase.auth.exchangeCodeForSession(window.location.href);
     url.searchParams.delete("code");
@@ -150,137 +506,266 @@ try{
   }
 }catch(e){}
 
-/* USER */
+/* ===== USER ===== */
 async function refreshUser(){
-  const {data}=await supabase.auth.getUser();
-  user=data.user||null;
-  el("who").textContent=user?`Loggato: ${user.email}`:"Non loggato";
+  const {data} = await supabase.auth.getUser();
+  user = data.user || null;
+  setWho();
 }
 await refreshUser();
 
-/* SIGNUP */
-el("signup").onclick=async()=>{
-  const {error}=await supabase.auth.signUp({
-    email:el("email").value.trim(),
-    password:el("pass").value,
+/* ===== Helper: carica profilo ===== */
+async function loadMyProfile(){
+  if(!user) return;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("nick, gender")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  // Se non esiste ancora, prova a leggere dai metadata e precompilare
+  const meta = user.user_metadata || {};
+  if(data){
+    el("nick").value = data.nick || "";
+    el("gender").value = data.gender || (meta.gender || "uomo");
+  }else{
+    el("nick").value = meta.nick || el("nick").value || "";
+    el("gender").value = meta.gender || el("gender").value || "uomo";
+  }
+}
+await loadMyProfile();
+
+/* ===== SIGNUP (con nick + gender in metadata) ===== */
+el("signup").onclick = async () => {
+  alertHide();
+  const email = el("email").value.trim();
+  const pass = el("pass").value;
+  const nick = el("regNick").value.trim();
+  const gender = el("regGender").value;
+
+  if(!email || !email.includes("@")) return alertBox("err","Inserisci un’email valida.");
+  if(!pass || pass.length < 6) return alertBox("err","Password min 6 caratteri.");
+  if(!nick || nick.length < 3) return alertBox("err","Nick min 3 caratteri.");
+
+  const {error} = await supabase.auth.signUp({
+    email,
+    password: pass,
     options:{
-      emailRedirectTo:"https://videochat26.github.io/videochat26/"
+      data: { nick, gender },
+      emailRedirectTo: "https://videochat26.github.io/videochat26/"
     }
   });
-  if(error)return alert(error.message);
-  alert("Controlla email (anche spam)");
+
+  if(error) return alertBox("err", error.message);
+  alertBox("ok","Registrazione inviata! Controlla email (anche spam) e poi fai Login.");
+  // comodità
+  el("email2").value = email;
+  el("pass2").value = pass;
+  setTab("login");
 };
 
-/* LOGIN */
-el("login").onclick=async()=>{
-  const {error}=await supabase.auth.signInWithPassword({
-    email:el("email").value.trim(),
-    password:el("pass").value
+/* ===== LOGIN ===== */
+el("login").onclick = async () => {
+  alertHide();
+  const {error} = await supabase.auth.signInWithPassword({
+    email: el("email2").value.trim(),
+    password: el("pass2").value
   });
-  if(error)return alert(error.message);
+  if(error) return alertBox("err", error.message);
+
   await refreshUser();
+  await loadMyProfile();
+  alertBox("ok","Login effettuato ✅");
 };
 
-/* LOGOUT */
-el("logout").onclick=async()=>{
+/* ===== GUEST (Anonymous) ===== */
+el("guestEnter").onclick = async () => {
+  alertHide();
+  const nick = el("guestNick").value.trim();
+  const gender = el("guestGender").value;
+
+  if(!nick || nick.length < 3) return alertBox("err","Nick ospite min 3 caratteri.");
+
+  // Supabase Anonymous Sign-In
+  const { data, error } = await supabase.auth.signInAnonymously();
+  if(error){
+    return alertBox("err",
+      "Modalità ospite non disponibile: abilita 'Anonymous Sign-Ins' su Supabase Auth. Dettaglio: " + error.message
+    );
+  }
+
+  await refreshUser();
+
+  // Salva profilo per l'anon (così i messaggi avranno nick)
+  const { error: upErr } = await supabase.from("profiles").upsert({
+    user_id: user.id,
+    nick,
+    gender
+  });
+  if(upErr) return alertBox("err", upErr.message);
+
+  el("nick").value = nick;
+  el("gender").value = gender;
+
+  alertBox("ok","Entrato come ospite ✅ Ora puoi entrare in una stanza.");
+};
+
+/* ===== LOGOUT ===== */
+el("logout").onclick = async () => {
+  alertHide();
+  if(channel) { try { supabase.removeChannel(channel); } catch(e){} channel=null; }
+  room = null;
+
   await supabase.auth.signOut();
   await refreshUser();
+  el("messages").innerHTML = "";
+  el("video").innerHTML = "";
+  if(jitsi) { try{ jitsi.dispose(); }catch(e){} jitsi=null; }
+
+  alertBox("ok","Logout effettuato.");
 };
 
-/* PROFILO */
-el("saveProfile").onclick=async()=>{
-  if(!user)return alert("Login prima");
-  const nick=el("nick").value.trim();
-  if(!nick)return alert("Inserisci nick");
-  const {error}=await supabase.from("profiles").upsert({
-    user_id:user.id,
-    nick
+/* ===== PROFILO (nick + gender) ===== */
+el("saveProfile").onclick = async () => {
+  alertHide();
+  if(!user) return alertBox("err","Login/ospite prima.");
+
+  const nick = el("nick").value.trim();
+  const gender = el("gender").value;
+
+  if(!nick) return alertBox("err","Inserisci nick.");
+
+  const {error} = await supabase.from("profiles").upsert({
+    user_id: user.id,
+    nick,
+    gender
   });
-  if(error)return alert(error.message);
-  alert("Nick salvato");
+  if(error) return alertBox("err", error.message);
+
+  // Aggiorna anche metadata (utile per prefill)
+  try{
+    await supabase.auth.updateUser({ data: { nick, gender } });
+  }catch(e){}
+
+  alertBox("ok","Profilo salvato ✅");
 };
 
-/* ROOMS */
+/* ===== ROOMS ===== */
 async function loadRooms(){
-  const {data}=await supabase.from("rooms").select("*").order("id");
-  el("room").innerHTML=data.map(r=>`<option value="${r.slug}">${r.name}</option>`).join("");
+  const {data, error} = await supabase.from("rooms").select("*").order("id");
+  if(error) return alertBox("err", error.message);
+
+  el("room").innerHTML = data.map(r => `<option value="${r.slug}">${r.name}</option>`).join("");
 }
 await loadRooms();
 
-/* ENTER ROOM */
-el("enter").onclick=async()=>{
-  if(!user)return alert("Login prima");
-  const slug=el("room").value;
-  const {data}=await supabase.from("rooms").select("*").eq("slug",slug).single();
-  room=data;
+/* ===== ENTER ROOM ===== */
+el("enter").onclick = async () => {
+  alertHide();
+  if(!user) return alertBox("err","Login/ospite prima.");
 
-  el("messages").innerHTML="";
+  const slug = el("room").value;
+  const {data, error} = await supabase.from("rooms").select("*").eq("slug", slug).single();
+  if(error) return alertBox("err", error.message);
+  room = data;
 
-  const {data:history}=await supabase
+  el("messages").innerHTML = "";
+
+  const {data:history, error:histErr} = await supabase
     .from("messages")
     .select("*")
-    .eq("room_id",room.id)
-    .order("created_at",{ascending:true});
+    .eq("room_id", room.id)
+    .order("created_at", {ascending:true});
+  if(histErr) return alertBox("err", histErr.message);
 
   history.forEach(addMsg);
 
   if(channel) supabase.removeChannel(channel);
 
-  channel=supabase.channel(`room:${room.slug}`)
+  channel = supabase.channel(`room:${room.slug}`)
     .on('postgres_changes',
-      {event:'INSERT',schema:'public',table:'messages',filter:`room_id=eq.${room.id}`},
-      payload=>addMsg(payload.new)
+      {event:'INSERT', schema:'public', table:'messages', filter:`room_id=eq.${room.id}`},
+      payload => addMsg(payload.new)
     )
     .subscribe();
 
-  alert("Entrato in "+room.name);
+  alertBox("ok","Entrato in " + room.name + " ✅");
 };
 
 function addMsg(m){
-  const div=document.createElement("div");
-  div.className="msg";
-  div.innerHTML=`<div class="meta"><b>${m.nick}</b></div>${m.body}`;
+  const div = document.createElement("div");
+  div.className = "msg";
+  div.innerHTML = `
+    <div class="meta"><b>${escapeHtml(m.nick || "—")}</b> · ${new Date(m.created_at).toLocaleString("it-IT")}</div>
+    <div class="bubble">${escapeHtml(m.body || "")}</div>
+  `;
   el("messages").appendChild(div);
-  el("messages").scrollTop=el("messages").scrollHeight;
+  el("messages").scrollTop = el("messages").scrollHeight;
 }
 
-/* SEND via Edge Function */
-el("send").onclick=async()=>{
-  if(!room)return;
-  const body=el("text").value.trim();
-  if(!body)return;
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
-  const {data}=await supabase.auth.getSession();
-  const token=data.session?.access_token;
+/* ===== SEND via Edge Function ===== */
+el("send").onclick = async () => {
+  alertHide();
+  if(!room) return alertBox("err","Entra in stanza prima.");
+  if(!user) return alertBox("err","Login/ospite prima.");
 
-  const res=await fetch(`${SUPABASE_URL}/functions/v1/send_message`,{
+  const body = el("text").value.trim();
+  if(!body) return;
+
+  const {data} = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+
+  if(!token){
+    return alertBox("err","Sessione non valida. Rientra (login/ospite) e riprova.");
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/send_message`,{
     method:"POST",
     headers:{
       "Content-Type":"application/json",
       "Authorization":`Bearer ${token}`
     },
-    body:JSON.stringify({room_slug:room.slug,body})
+    body:JSON.stringify({room_slug: room.slug, body})
   });
 
-  const out=await res.json();
-  if(!out.ok)return alert(out.error);
+  const out = await res.json().catch(() => ({}));
+  if(!out.ok) return alertBox("err", out.error || "Errore invio messaggio.");
 
-  el("text").value="";
+  el("text").value = "";
 };
 
-/* VIDEO */
-el("startVideo").onclick=()=>{
-  if(!room)return alert("Entra in stanza prima");
-  const node=el("video");
-  node.innerHTML="";
+el("text").addEventListener("keydown", (e)=>{
+  if(e.key === "Enter") el("send").click();
+});
+
+/* ===== VIDEO (Jitsi) ===== */
+el("startVideo").onclick = () => {
+  alertHide();
+  if(!room) return alertBox("err","Entra in stanza prima.");
+
+  const node = el("video");
+  node.innerHTML = "";
   if(jitsi) jitsi.dispose();
 
-  jitsi=new JitsiMeetExternalAPI("meet.jit.si",{
+  jitsi = new JitsiMeetExternalAPI("meet.jit.si",{
     roomName:`VIDEOCHAT26_${room.slug}`,
-    parentNode:node,
+    parentNode: node,
     lang:"it"
   });
 };
+
+/* ===== Init UI state ===== */
+setTab("reg");
+setWho();
 
 </script>
 </body>

@@ -99,19 +99,18 @@ async function requireLogin(){
     .from("profiles")
     .select("nick, gender")
     .eq("user_id", user.id)
-    .maybeSingle();
+    .limit(1);
 
-  profile = p || null;
+  profile = (p && p.length) ? p[0] : null;
 
   const nick = profile?.nick || user.user_metadata?.nick || "Utente";
   el("me").textContent = `Ciao, ${nick}`; // SOLO NICK
-
   return true;
 }
 
 /* =============================
    ROOM: load room by slug
-   FIX: gestisce duplicati (limit 1 + maybeSingle)
+   (NO single/maybeSingle => niente "coerce")
 ============================= */
 async function loadRoom(){
   const { data, error } = await supabase
@@ -119,13 +118,12 @@ async function loadRoom(){
     .select("*")
     .eq("slug", ROOM_SLUG)
     .order("id", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
 
   if(error) throw error;
-  if(!data) throw new Error(`Stanza non trovata: slug=${ROOM_SLUG}`);
+  if(!data || data.length === 0) throw new Error(`Stanza non trovata: slug=${ROOM_SLUG}`);
 
-  room = data;
+  room = data[0];
 }
 
 /* =============================
@@ -189,13 +187,13 @@ async function joinRealtime(){
       renderUsers();
     })
 
-    // pubblici: INSERT su messages filtrati per room_id
+    // pubblici
     .on("postgres_changes",
       { event:"INSERT", schema:"public", table:"messages", filter:`room_id=eq.${room.id}` },
       (payload) => addMsg({ ...payload.new, type:"public" })
     )
 
-    // DM: INSERT dove io sono destinatario
+    // DM ricevuti
     .on("postgres_changes",
       { event:"INSERT", schema:"public", table:"direct_messages", filter:`to_user_id=eq.${user.id}` },
       (payload) => addMsg({ ...payload.new, type:"dm" })
@@ -222,7 +220,7 @@ async function sendPublic(){
   const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
 
   const { error } = await supabase.from("messages").insert({
-    room_id: room.id,   // ✅ schema reale
+    room_id: room.id,
     user_id: user.id,
     nick: myNick,
     body
@@ -248,7 +246,6 @@ async function sendDM(){
 
   const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
 
-  // nick destinatario da presence
   let toNick = "";
   for(const k of Object.keys(presenceState)){
     for(const s of presenceState[k]){
@@ -269,7 +266,6 @@ async function sendDM(){
     return;
   }
 
-  // mostra subito localmente
   addMsg({ type:"dm", nick: myNick, to_nick: toNick, body, created_at: new Date().toISOString() });
   el("text").value = "";
 }
@@ -334,7 +330,7 @@ function wireUI(){
   if(!ok) return;
 
   try{
-    await loadRoom();        // ✅ ora non esplode con duplicati
+    await loadRoom(); // ✅ non può più fare "coerce"
   }catch(e){
     alert("Errore stanza: " + (e.message || e));
     return;
@@ -344,4 +340,3 @@ function wireUI(){
   await loadHistory();
   await joinRealtime();
 })();
-```0

@@ -6,8 +6,8 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL = "https://rslemfuzuoobslkrhqnx.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_zGJKajM_m40ZAf0B301ycg_iqsTIVSr";
 
-const ROOM_SLUG = "videochat26";       // deve esistere in public.rooms.slug
-const ROOM_TITLE = "VIDEOCHAT 26";     // solo UI
+const ROOM_SLUG = "videochat26";   // deve esistere in public.rooms.slug
+const ROOM_TITLE = "VIDEOCHAT 26"; // solo UI
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const el = (id) => document.getElementById(id);
@@ -75,7 +75,6 @@ function renderUsers(){
   el("count").textContent = String(list.length);
   el("countPill").textContent = String(list.length);
 
-  // select DM (escludo me)
   const opts = list
     .filter(u => u.user_id !== user.id)
     .map(u => `<option value="${esc(u.user_id)}">${esc(u.nick || "—")}</option>`)
@@ -92,7 +91,6 @@ async function requireLogin(){
   user = data.user || null;
 
   if(!user){
-    // se non loggato, torna alla pagina di auth/index
     window.location.href = "./auth.html";
     return false;
   }
@@ -113,15 +111,20 @@ async function requireLogin(){
 
 /* =============================
    ROOM: load room by slug
+   FIX: gestisce duplicati (limit 1 + maybeSingle)
 ============================= */
 async function loadRoom(){
   const { data, error } = await supabase
     .from("rooms")
     .select("*")
     .eq("slug", ROOM_SLUG)
-    .single();
+    .order("id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
   if(error) throw error;
+  if(!data) throw new Error(`Stanza non trovata: slug=${ROOM_SLUG}`);
+
   room = data;
 }
 
@@ -139,7 +142,11 @@ async function loadHistory(){
     .eq("room_id", room.id)
     .order("created_at", { ascending:true });
 
-  if(!e1 && pub) pub.forEach(m => addMsg({ ...m, type:"public" }));
+  if(e1){
+    console.warn("history messages error", e1);
+  }else{
+    (pub || []).forEach(m => addMsg({ ...m, type:"public" }));
+  }
 
   // DM: inbox + outbox
   const { data: dm, error: e2 } = await supabase
@@ -148,7 +155,11 @@ async function loadHistory(){
     .or(`to_user_id.eq.${user.id},from_user_id.eq.${user.id}`)
     .order("created_at", { ascending:true });
 
-  if(!e2 && dm) dm.forEach(m => addMsg({ ...m, type:"dm" }));
+  if(e2){
+    console.warn("history dm error", e2);
+  }else{
+    (dm || []).forEach(m => addMsg({ ...m, type:"dm" }));
+  }
 }
 
 /* =============================
@@ -203,13 +214,15 @@ async function joinRealtime(){
    SEND PUBLIC
 ============================= */
 async function sendPublic(){
+  if(!room) return;
+
   const body = (el("text").value || "").trim();
   if(!body) return;
 
   const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
 
   const { error } = await supabase.from("messages").insert({
-    room_id: room.id,         // ✅ schema reale
+    room_id: room.id,   // ✅ schema reale
     user_id: user.id,
     nick: myNick,
     body
@@ -235,7 +248,7 @@ async function sendDM(){
 
   const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
 
-  // prendo nick destinatario dal presence state
+  // nick destinatario da presence
   let toNick = "";
   for(const k of Object.keys(presenceState)){
     for(const s of presenceState[k]){
@@ -256,7 +269,7 @@ async function sendDM(){
     return;
   }
 
-  // mostro subito anche localmente
+  // mostra subito localmente
   addMsg({ type:"dm", nick: myNick, to_nick: toNick, body, created_at: new Date().toISOString() });
   el("text").value = "";
 }
@@ -265,8 +278,11 @@ async function sendDM(){
    VIDEO (Jitsi)
 ============================= */
 function startVideo(){
+  if(!room) return;
+
   const node = el("video");
   node.innerHTML = "";
+
   if(jitsi){
     try { jitsi.dispose(); } catch(e){}
     jitsi = null;
@@ -280,7 +296,7 @@ function startVideo(){
 }
 
 /* =============================
-   LOGOUT/EXIT
+   EXIT / LOGOUT
 ============================= */
 async function exitRoom(){
   try{
@@ -318,9 +334,9 @@ function wireUI(){
   if(!ok) return;
 
   try{
-    await loadRoom();
+    await loadRoom();        // ✅ ora non esplode con duplicati
   }catch(e){
-    alert("Errore stanza (rooms): " + (e.message || e));
+    alert("Errore stanza: " + (e.message || e));
     return;
   }
 
@@ -328,3 +344,4 @@ function wireUI(){
   await loadHistory();
   await joinRealtime();
 })();
+```0

@@ -1,32 +1,822 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>VideoChat26</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./app.css">
+  <script src="https://meet.jit.si/external_api.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b0f19;
+      --panel:#0f172a;
+      --panel2:#0b1224;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --border:rgba(255,255,255,.12);
+      --shadow:0 18px 45px rgba(0,0,0,.35);
+      --ok:#22c55e;
+      --btn:#22c55e;
+      --btn2:#334155;
+      --danger:#ef4444;
+      --pill:rgba(255,255,255,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto;
+      background:
+        radial-gradient(1000px 500px at 30% -10%, rgba(34,197,94,.18), transparent 60%),
+        radial-gradient(900px 500px at 90% 0%, rgba(59,130,246,.14), transparent 55%),
+        var(--bg);
+      color:var(--text);
+    }
+    header{
+      padding:12px;
+      background:rgba(15,23,42,.92);
+      border-bottom:1px solid var(--border);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      position:sticky;
+      top:0;
+      backdrop-filter: blur(10px);
+      z-index:5;
+    }
+    .brand{display:flex;align-items:center;gap:10px;font-weight:900}
+    .logo{
+      width:34px;height:34px;border-radius:12px;
+      display:grid;place-items:center;
+      background:rgba(34,197,94,.12);
+      border:1px solid rgba(34,197,94,.25);
+      box-shadow:0 10px 25px rgba(0,0,0,.25);
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:var(--pill);
+      border:1px solid var(--border);
+      color:var(--muted);
+      font-size:13px;
+      flex-wrap:wrap;
+    }
+    .container{max-width:1100px;margin:0 auto;padding:14px 12px 22px;}
+    .card{
+      background:rgba(15,23,42,.92);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+    }
+    .hero{padding:18px;text-align:center;animation:fadeUp .45s ease-out both;}
+    .hero h1{
+      margin:0;
+      font-family:"Bebas Neue",system-ui;
+      letter-spacing:.8px;
+      font-size:clamp(34px, 5vw, 56px);
+    }
+    .hero p{margin:6px 0 0;color:var(--muted)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:12px}
+    @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
+    .box{padding:14px}
+    h3{margin:0 0 10px 0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    input,select{
+      padding:11px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(11,18,36,.85);color:var(--text);width:100%;
+      outline:none;
+      margin-bottom:10px;
+    }
+    input:focus,select:focus{border-color:rgba(34,197,94,.35)}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media (max-width:520px){.row2{grid-template-columns:1fr}}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    button{
+      padding:11px 12px;border-radius:12px;border:0;background:var(--btn);
+      font-weight:900;cursor:pointer;color:#04130a;
+    }
+    button.secondary{background:var(--btn2);color:#fff;border:1px solid var(--border)}
+    button.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .hr{height:1px;background:var(--border);margin:12px 0;opacity:.85}
+    .small{font-size:12px;color:var(--muted);line-height:1.35}
+
+    .alert{
+      padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(11,18,36,.7);font-size:13px;display:none;margin-bottom:10px
+    }
+    .alert.ok{border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.10)}
+    .alert.err{border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.10)}
+
+    /* ROOM */
+    .roomTop{
+      display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;
+      padding:12px 14px;border-bottom:1px solid var(--border)
+    }
+    .roomTitle{
+      font-family:"Bebas Neue",system-ui;
+      letter-spacing:.7px;
+      font-size:34px;
+      line-height:1;
+      margin:0;
+    }
+    .roomWrap{display:grid;grid-template-columns: 1fr 320px;gap:12px;padding:12px}
+    @media (max-width:980px){.roomWrap{grid-template-columns:1fr}}
+    #messages{
+      height:44vh;overflow:auto;padding:12px;background:rgba(11,18,36,.55);
+      border-radius:14px;border:1px solid var(--border);
+    }
+    .msg{margin-bottom:10px}
+    .meta{font-size:12px;color:var(--muted);margin-bottom:4px}
+    .bubble{
+      display:inline-block;padding:10px 12px;border-radius:14px;border:1px solid var(--border);
+      background:rgba(15,23,42,.85);
+      max-width:100%;
+      word-wrap:break-word;
+    }
+    #video{
+      height:45vh;border-radius:14px;overflow:hidden;border:1px solid var(--border);
+      background:rgba(11,18,36,.55);
+      margin-top:12px;
+    }
+    .userList{
+      padding:12px;border-radius:14px;border:1px solid var(--border);
+      background:rgba(11,18,36,.55);
+    }
+    .userList ul{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+    .userList li{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+      background:rgba(15,23,42,.85);
+    }
+    .miniPill{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      background:var(--pill);
+      border:1px solid var(--border);
+      color:var(--text);
+      font-weight:800;
+      font-size:11px;
+    }
+
+    /* VIEWS */
+    .view{display:none}
+    .view.active{display:block}
+  </style>
 </head>
+
 <body>
 <header>
-  <div class="brand"><div class="logo">💬</div><div>VideoChat26</div></div>
-  <div class="pill">Benvenuto</div>
+  <div class="brand">
+    <div class="logo">💬</div>
+    <div>VideoChat26</div>
+  </div>
+  <div class="pill">
+    <span class="miniPill" id="statusPill">NON LOGGATO</span>
+    <span id="statusText">—</span>
+  </div>
 </header>
 
 <div class="container">
-  <div class="card hero">
-    <h1>BENVENUTO IN VIDEOCHAT 26</h1>
-    <p>Pronto a iniziare la tua conversazione?</p>
 
-    <div class="actions" style="justify-content:center;margin-top:16px">
-      <a href="./auth.html?mode=guest"><button>Entra come ospite</button></a>
-      <a href="./auth.html?mode=auth"><button class="secondary">Accedi / Registrati</button></a>
-    </div>
+  <!-- VIEW: WELCOME -->
+  <div id="viewWelcome" class="view active">
+    <div class="card hero">
+      <h1>BENVENUTO IN VIDEOCHAT 26</h1>
+      <p>Pronto a iniziare la tua conversazione?</p>
 
-    <div class="small" style="margin-top:14px">
-      Entrerai nella stanza unica <b>VIDEOCHAT 26</b>. In chat mostreremo sempre e solo il <b>nick</b>, mai l’email.
+      <div class="actions" style="justify-content:center;margin-top:16px">
+        <button id="btnGoGuest">Entra come ospite</button>
+        <button id="btnGoAuth" class="secondary">Accedi / Registrati</button>
+      </div>
+
+      <div class="small" style="margin-top:14px">
+        Entrerai nella stanza unica <b>VIDEOCHAT 26</b>. In app mostriamo sempre e solo il <b>nick</b>, mai l’email.
+      </div>
     </div>
   </div>
+
+  <!-- VIEW: AUTH -->
+  <div id="viewAuth" class="view">
+    <div class="card">
+      <div class="box">
+        <h3>Accesso</h3>
+        <div id="alert" class="alert"></div>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr;">
+          <!-- Guest -->
+          <div class="card" style="box-shadow:none">
+            <div class="box">
+              <h3>Ospite</h3>
+              <label>Nick</label>
+              <input id="gNick" placeholder="Nick ospite">
+              <label>Uomo / Donna</label>
+              <select id="gGender">
+                <option value="uomo">Uomo</option>
+                <option value="donna">Donna</option>
+              </select>
+
+              <div class="actions">
+                <button id="btnGuestEnter">Entra</button>
+                <button id="btnBack1" class="ghost" type="button">Indietro</button>
+              </div>
+
+              <div class="small" style="margin-top:10px">
+                Nota: serve <b>Anonymous Sign-ins</b> attivo su Supabase. Se è disattivo, te lo dirò chiaramente.
+              </div>
+            </div>
+          </div>
+
+          <!-- Account -->
+          <div class="card" style="box-shadow:none">
+            <div class="box">
+              <h3>Account</h3>
+
+              <label>Email</label>
+              <input id="email" placeholder="Email">
+
+              <label>Password</label>
+              <input id="pass" type="password" placeholder="Password (min 6)">
+
+              <div class="hr"></div>
+
+              <label>Nick (visibile in chat)</label>
+              <input id="nick" placeholder="Nick unico">
+
+              <label>Uomo / Donna</label>
+              <select id="gender">
+                <option value="uomo">Uomo</option>
+                <option value="donna">Donna</option>
+              </select>
+
+              <div class="actions">
+                <button id="btnSignup">Registrati</button>
+                <button id="btnLogin" class="secondary">Login</button>
+                <button id="btnLogout" class="ghost" type="button">Logout</button>
+              </div>
+
+              <div class="small" style="margin-top:10px">
+                Dopo il login, in app vedrai <b>solo il nick</b>. L’email non viene mai mostrata.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="actions" style="justify-content:center">
+          <button id="btnGoRoom" class="secondary" disabled>Vai alla stanza VIDEOCHAT 26</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: ROOM -->
+  <div id="viewRoom" class="view">
+    <div class="card">
+      <div class="roomTop">
+        <div>
+          <div class="roomTitle">VIDEOCHAT 26</div>
+          <div class="small">Utenti online: <b id="count">0</b></div>
+        </div>
+        <div class="actions" style="margin:0">
+          <button id="btnVideo" class="secondary">Apri Cam</button>
+          <button id="btnExit" class="ghost" type="button">Esci</button>
+        </div>
+      </div>
+
+      <div class="roomWrap">
+        <div>
+          <div id="messages"></div>
+
+          <div class="row2" style="margin-top:10px;">
+            <div>
+              <label>Messaggio</label>
+              <input id="text" placeholder="Scrivi messaggio (pubblico o privato)">
+            </div>
+            <div style="display:flex;align-items:end;gap:10px">
+              <button id="send" style="flex:1">Pubblico</button>
+              <button id="sendDm" class="secondary" style="flex:1">Privato</button>
+            </div>
+          </div>
+
+          <div class="small" style="margin-top:8px">
+            “Privato” invia al nick selezionato a destra.
+          </div>
+
+          <div id="video"></div>
+        </div>
+
+        <div class="userList">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div><b>Utenti presenti</b></div>
+            <span class="miniPill" id="countPill">0</span>
+          </div>
+
+          <ul id="users"></ul>
+
+          <div class="hr"></div>
+
+          <label>Invia privato a</label>
+          <select id="dmTo"></select>
+
+          <div class="small" style="margin-top:10px">
+            Se la lista è vuota, nessuno è online in questo momento.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+/* =============================
+   CONFIG (le tue chiavi)
+============================= */
+const SUPABASE_URL = "https://rslemfuzuoobslkrhqnx.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_zGJKajM_m40ZAf0B301ycg_iqsTIVSr";
+const ROOM_SLUG = "videochat26";  // deve esistere in public.rooms.slug
+const ROOM_NAME = "VIDEOCHAT 26";
+const EMAIL_REDIRECT_TO = window.location.origin + window.location.pathname; // stessa pagina
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const el = (id) => document.getElementById(id);
+
+/* =============================
+   STATE
+============================= */
+let user = null;
+let profile = null;
+let room = null;
+let channel = null;
+let presenceState = {};
+let jitsi = null;
+
+/* =============================
+   UI helpers
+============================= */
+function showView(name){
+  ["viewWelcome","viewAuth","viewRoom"].forEach(id => el(id).classList.remove("active"));
+  el(name).classList.add("active");
+}
+function alertBox(type, msg){
+  const box = el("alert");
+  box.style.display = "block";
+  box.className = "alert " + (type === "err" ? "err" : "ok");
+  box.textContent = msg;
+}
+function alertHide(){
+  const box = el("alert");
+  box.style.display = "none";
+  box.textContent = "";
+}
+function esc(str){
+  return String(str ?? "")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+function setStatus(){
+  const pill = el("statusPill");
+  const txt = el("statusText");
+  if(!user){
+    pill.textContent = "NON LOGGATO";
+    txt.textContent = "—";
+    return;
+  }
+  pill.textContent = "LOGGATO";
+  // MOSTRA SOLO NICK
+  const nick = profile?.nick || user.user_metadata?.nick || "Utente";
+  txt.textContent = nick;
+}
+function addMsg({ type="public", nick, body, created_at, to_nick }){
+  const div = document.createElement("div");
+  div.className = "msg";
+
+  const when = created_at ? new Date(created_at).toLocaleString("it-IT") : "";
+  const badge = type === "dm"
+    ? ` <span class="miniPill">DM → ${esc(to_nick||"")}</span>`
+    : "";
+
+  div.innerHTML = `
+    <div class="meta"><b>${esc(nick||"—")}</b>${badge} · ${when}</div>
+    <div class="bubble">${esc(body||"")}</div>
+  `;
+  el("messages").appendChild(div);
+  el("messages").scrollTop = el("messages").scrollHeight;
+}
+
+/* =============================
+   Supabase: exchange code for session (email confirm)
+============================= */
+async function exchangeCodeIfAny(){
+  try{
+    const url = new URL(window.location.href);
+    if(url.searchParams.get("code")){
+      await supabase.auth.exchangeCodeForSession(window.location.href);
+      url.searchParams.delete("code");
+      window.history.replaceState({}, "", url.toString());
+    }
+  }catch(e){}
+}
+
+/* =============================
+   Load user + profile
+============================= */
+async function refreshUser(){
+  const { data } = await supabase.auth.getUser();
+  user = data.user || null;
+
+  profile = null;
+  if(user){
+    const { data: p } = await supabase
+      .from("profiles")
+      .select("nick, gender")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    profile = p || null;
+  }
+
+  setStatus();
+  el("btnGoRoom").disabled = !user;
+}
+
+/* =============================
+   Profile upsert (nick + gender)
+============================= */
+async function upsertProfile(nick, gender){
+  const { error } = await supabase.from("profiles").upsert({
+    user_id: user.id,
+    nick,
+    gender
+  });
+  if(error) throw error;
+
+  // utile per prefill, ma in UI NON mostriamo email
+  try { await supabase.auth.updateUser({ data: { nick, gender } }); } catch(e){}
+}
+
+/* =============================
+   Auth actions
+============================= */
+async function doSignup(){
+  alertHide();
+  const email = el("email").value.trim();
+  const pass = el("pass").value || "";
+  const nick = el("nick").value.trim();
+  const gender = el("gender").value;
+
+  if(!email.includes("@")) return alertBox("err","Email non valida.");
+  if(pass.length < 6) return alertBox("err","Password min 6 caratteri.");
+  if(nick.length < 3) return alertBox("err","Nick min 3 caratteri.");
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password: pass,
+    options:{
+      data: { nick, gender },
+      emailRedirectTo: EMAIL_REDIRECT_TO
+    }
+  });
+  if(error) return alertBox("err", error.message);
+
+  alertBox("ok","Registrazione inviata! Controlla email (anche spam), poi fai Login.");
+}
+
+async function doLogin(){
+  alertHide();
+  const email = el("email").value.trim();
+  const pass = el("pass").value || "";
+  if(!email.includes("@")) return alertBox("err","Email non valida.");
+  if(!pass) return alertBox("err","Inserisci la password.");
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+  if(error) return alertBox("err", error.message);
+
+  await refreshUser();
+
+  // se ho nick/gender compilati qui, salvo anche in profiles
+  try{
+    const nick = el("nick").value.trim();
+    const gender = el("gender").value;
+    if(nick.length >= 3) await upsertProfile(nick, gender);
+    await refreshUser();
+  }catch(e){}
+
+  alertBox("ok","Login effettuato ✅");
+}
+
+async function doGuest(){
+  alertHide();
+  const nick = el("gNick").value.trim();
+  const gender = el("gGender").value;
+
+  if(nick.length < 3) return alertBox("err","Nick min 3 caratteri.");
+
+  // richiede Anonymous Sign-ins attivo
+  const { error } = await supabase.auth.signInAnonymously();
+  if(error){
+    return alertBox("err", "Modalità ospite non disponibile: abilita 'Anonymous Sign-Ins' su Supabase Auth. Dettaglio: " + error.message);
+  }
+
+  await refreshUser();
+
+  try{
+    await upsertProfile(nick, gender);
+    await refreshUser();
+  }catch(e){
+    return alertBox("err", "Errore salvataggio profilo ospite: " + (e.message || e));
+  }
+
+  alertBox("ok","Entrato come ospite ✅");
+}
+
+async function doLogout(){
+  alertHide();
+  if(channel){ try { supabase.removeChannel(channel); } catch(e){} channel=null; }
+  room = null;
+  presenceState = {};
+  el("messages").innerHTML = "";
+  el("video").innerHTML = "";
+  if(jitsi){ try{ jitsi.dispose(); }catch(e){} jitsi=null; }
+
+  await supabase.auth.signOut();
+  await refreshUser();
+  alertBox("ok","Logout effettuato.");
+}
+
+/* =============================
+   Room: load room by slug, history, realtime, presence
+   DB schema (tuo):
+   rooms: id, slug, name...
+   messages: id, room_id, user_id, nick, body, created_at
+   direct_messages: id, from_user_id, to_user_id, nick, to_nick, body, created_at
+============================= */
+async function loadRoom(){
+  const { data, error } = await supabase
+    .from("rooms")
+    .select("*")
+    .eq("slug", ROOM_SLUG)
+    .single();
+
+  if(error) throw error;
+  room = data;
+}
+
+async function loadHistory(){
+  el("messages").innerHTML = "";
+  addMsg({ nick:"Sistema", body:`Sei entrato nella stanza ${ROOM_NAME}.`, created_at:new Date().toISOString() });
+
+  // pubblici
+  const { data: pub, error: e1 } = await supabase
+    .from("messages")
+    .select("*")
+    .eq("room_id", room.id)
+    .order("created_at", { ascending:true });
+
+  if(e1) console.warn(e1);
+  (pub || []).forEach(m => addMsg({ ...m, type:"public" }));
+
+  // DM ricevuti+inviati (così li vedi anche tu nella cronologia)
+  const { data: dm, error: e2 } = await supabase
+    .from("direct_messages")
+    .select("*")
+    .or(`to_user_id.eq.${user.id},from_user_id.eq.${user.id}`)
+    .order("created_at", { ascending:true });
+
+  if(e2) console.warn(e2);
+  (dm || []).forEach(m => {
+    // se sei mittente, badge DM -> to_nick; se sei destinatario, badge DM -> (te stesso non ha senso, ma mostriamo to_nick comunque)
+    addMsg({ ...m, type:"dm" });
+  });
+}
+
+function renderUsers(){
+  const users = [];
+  for(const k of Object.keys(presenceState)){
+    for(const sess of presenceState[k]) users.push(sess);
+  }
+
+  const map = new Map(); // dedup by user_id
+  for(const u of users) map.set(u.user_id, u);
+
+  const list = Array.from(map.values()).sort((a,b)=> (a.nick||"").localeCompare(b.nick||"", "it"));
+
+  el("users").innerHTML = list.map(u => `
+    <li>
+      <span>${esc(u.nick || "—")}</span>
+      <span class="miniPill">${esc(u.gender || "")}</span>
+    </li>
+  `).join("");
+
+  el("count").textContent = String(list.length);
+  el("countPill").textContent = String(list.length);
+
+  const opts = list
+    .filter(u => u.user_id !== user.id)
+    .map(u => `<option value="${esc(u.user_id)}">${esc(u.nick || "—")}</option>`)
+    .join("");
+
+  el("dmTo").innerHTML = opts || `<option value="">(nessun utente)</option>`;
+}
+
+async function joinRealtime(){
+  if(channel){ try { supabase.removeChannel(channel); } catch(e){} }
+
+  channel = supabase.channel(`room:${ROOM_SLUG}`, {
+    config: { presence: { key: user.id } }
+  });
+
+  channel
+    .on("presence", { event: "sync" }, () => {
+      presenceState = channel.presenceState();
+      renderUsers();
+    })
+    .on("presence", { event: "join" }, () => {
+      presenceState = channel.presenceState();
+      renderUsers();
+    })
+    .on("presence", { event: "leave" }, () => {
+      presenceState = channel.presenceState();
+      renderUsers();
+    })
+    // pubblici: messages
+    .on("postgres_changes",
+      { event:"INSERT", schema:"public", table:"messages", filter:`room_id=eq.${room.id}` },
+      (payload) => addMsg({ ...payload.new, type:"public" })
+    )
+    // DM: ricevo quando sono destinatario
+    .on("postgres_changes",
+      { event:"INSERT", schema:"public", table:"direct_messages", filter:`to_user_id=eq.${user.id}` },
+      (payload) => addMsg({ ...payload.new, type:"dm" })
+    )
+    .subscribe(async (status) => {
+      if(status === "SUBSCRIBED"){
+        const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
+        const myGender = profile?.gender || user.user_metadata?.gender || "";
+        await channel.track({ user_id: user.id, nick: myNick, gender: myGender, at: Date.now() });
+      }
+    });
+}
+
+async function enterRoom(){
+  alertHide();
+  if(!user) return;
+
+  try{
+    await loadRoom();
+  }catch(e){
+    return alertBox("err", "Errore stanza: " + (e.message || e));
+  }
+
+  showView("viewRoom");
+  await loadHistory();
+  await joinRealtime();
+}
+
+/* =============================
+   Send messages
+============================= */
+async function sendPublic(){
+  if(!room) return;
+  const body = el("text").value.trim();
+  if(!body) return;
+
+  const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
+
+  // INSERT con schema reale: room_id (NON room_slug)
+  const { error } = await supabase.from("messages").insert({
+    room_id: room.id,
+    user_id: user.id,
+    nick: myNick,
+    body
+  });
+
+  if(error){
+    // qui vedi subito il motivo: RLS/colonne ecc.
+    alert("Errore invio: " + error.message);
+    return;
+  }
+
+  el("text").value = "";
+}
+
+async function sendDM(){
+  const to = el("dmTo").value;
+  if(!to) return;
+  const body = el("text").value.trim();
+  if(!body) return;
+
+  const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
+
+  // prendo il nick destinatario dal presence
+  let toNick = "";
+  for(const k of Object.keys(presenceState)){
+    for(const s of presenceState[k]){
+      if(s.user_id === to) toNick = s.nick || "";
+    }
+  }
+
+  const { error } = await supabase.from("direct_messages").insert({
+    from_user_id: user.id,
+    to_user_id: to,
+    nick: myNick,
+    to_nick: toNick,
+    body
+  });
+
+  if(error){
+    alert("Errore DM: " + error.message);
+    return;
+  }
+
+  // mostro subito anche localmente
+  addMsg({ type:"dm", nick: myNick, to_nick: toNick, body, created_at: new Date().toISOString() });
+  el("text").value = "";
+}
+
+/* =============================
+   Video (Jitsi)
+============================= */
+function startVideo(){
+  if(!room) return;
+  const node = el("video");
+  node.innerHTML = "";
+  if(jitsi){ try{ jitsi.dispose(); }catch(e){} jitsi=null; }
+
+  jitsi = new JitsiMeetExternalAPI("meet.jit.si",{
+    roomName:`VIDEOCHAT26_${room.slug}`,
+    parentNode: node,
+    lang:"it"
+  });
+}
+
+/* =============================
+   Wiring UI
+============================= */
+el("btnGoGuest").onclick = () => { showView("viewAuth"); };
+el("btnGoAuth").onclick  = () => { showView("viewAuth"); };
+
+el("btnBack1").onclick = () => { alertHide(); showView("viewWelcome"); };
+
+el("btnGuestEnter").onclick = doGuest;
+el("btnSignup").onclick = doSignup;
+el("btnLogin").onclick = doLogin;
+el("btnLogout").onclick = doLogout;
+
+el("btnGoRoom").onclick = enterRoom;
+
+el("send").onclick = sendPublic;
+el("sendDm").onclick = sendDM;
+el("text").addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendPublic(); });
+
+el("btnVideo").onclick = startVideo;
+el("btnExit").onclick = async () => {
+  try{
+    if(channel){ supabase.removeChannel(channel); channel=null; }
+  }catch(e){}
+  if(jitsi){ try{ jitsi.dispose(); }catch(e){} jitsi=null; }
+  showView("viewWelcome");
+};
+
+/* =============================
+   INIT
+============================= */
+await exchangeCodeIfAny();
+await refreshUser();
+
+// Se sono già loggato, abilito il bottone stanza e rimango su welcome (più pulito)
+if(user){
+  // prefill campi dal profilo/metadata
+  const n = profile?.nick || user.user_metadata?.nick || "";
+  const g = profile?.gender || user.user_metadata?.gender || "uomo";
+  el("nick").value = n;
+  el("gender").value = g;
+  el("gNick").value = n;
+  el("gGender").value = g;
+}
+
+// auto: se arrivi con ?go=room
+try{
+  const url = new URL(window.location.href);
+  if(url.searchParams.get("go")==="room" && user){
+    showView("viewAuth");
+    await enterRoom();
+  }
+}catch(e){}
+</script>
 </body>
 </html>
+```0

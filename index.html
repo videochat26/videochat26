@@ -1,262 +1,287 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VideoChat Pubblica</title>
-  <style>
-    :root{--bg:#0b0f19;--panel:#0f172a;--text:#e5e7eb;--muted:#9ca3af;--border:rgba(255,255,255,.12);--ok:#22c55e}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--text)}
-    header{padding:12px 14px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    input,select{padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:#0b1224;color:var(--text)}
-    button{padding:10px 12px;border-radius:10px;border:0;background:var(--ok);color:#06110a;font-weight:800;cursor:pointer}
-    button.secondary{background:#334155;color:#fff}
-    .wrap{display:grid;grid-template-columns: 320px 1fr;gap:12px;padding:12px}
-    .box{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden}
-    .box h3{margin:0;padding:10px 12px;border-bottom:1px solid var(--border);font-size:14px;color:var(--muted)}
-    .content{padding:10px 12px}
-    #messages{height:42vh;overflow:auto;padding:10px 12px;border-bottom:1px solid var(--border)}
-    .msg{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.07)}
-    .meta{font-size:12px;color:var(--muted)}
-    .body{white-space:pre-wrap;word-break:break-word;margin-top:2px}
-    #composer{display:flex;gap:10px;padding:10px 12px}
-    #text{flex:1}
-    #video{height:44vh}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .small{font-size:12px;color:var(--muted)}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>VideoChat26</title>
+
+<style>
+:root{
+  --bg:#0b0f19;
+  --panel:#0f172a;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --border:rgba(255,255,255,.12);
+  --ok:#22c55e;
+}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:var(--bg);
+  color:var(--text);
+}
+header{
+  padding:12px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.wrap{
+  display:grid;
+  grid-template-columns:320px 1fr;
+  gap:12px;
+  padding:12px;
+}
+.box{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+.box h3{
+  margin:0;
+  padding:10px;
+  border-bottom:1px solid var(--border);
+  font-size:14px;
+  color:var(--muted);
+}
+.content{padding:10px}
+input,select{
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0b1224;
+  color:var(--text);
+  width:100%;
+  margin-bottom:8px;
+}
+button{
+  padding:10px;
+  border-radius:10px;
+  border:0;
+  background:var(--ok);
+  font-weight:700;
+  cursor:pointer;
+}
+button.secondary{background:#334155;color:#fff}
+#messages{
+  height:40vh;
+  overflow:auto;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  padding:10px;
+}
+.msg{margin-bottom:8px}
+.meta{font-size:12px;color:var(--muted)}
+#video{height:45vh}
+</style>
 </head>
 <body>
-  <header>
-    <div style="font-weight:900">💬 VideoChat Pubblica</div>
-    <span class="small" id="who">non loggato</span>
-  </header>
 
-  <div class="wrap">
-    <div class="box">
-      <h3>Account</h3>
-      <div class="content">
-        <div class="row">
-          <input id="email" placeholder="email" />
-          <input id="pass" placeholder="password" type="password" />
-        </div>
-        <div class="row" style="margin-top:10px">
-          <button id="signup">Registrati</button>
-          <button class="secondary" id="login">Login</button>
-          <button class="secondary" id="logout">Logout</button>
-        </div>
+<header>
+  <div style="font-weight:900">💬 VideoChat26</div>
+  <div id="who">Non loggato</div>
+</header>
 
-        <hr style="border:0;border-top:1px solid rgba(255,255,255,.1);margin:14px 0">
+<div class="wrap">
 
-        <div style="font-weight:800;margin-bottom:6px">Profilo</div>
-        <div class="row">
-          <input id="nick" placeholder="Nick (unico)" maxlength="20" />
-          <input id="country" placeholder="Paese (es. IT)" maxlength="24" />
-        </div>
-        <div class="row" style="margin-top:10px">
-          <input id="interests" placeholder="Interessi (es. calcio, musica)" />
-          <button id="saveProfile">Salva profilo</button>
-        </div>
+<div class="box">
+<h3>Account</h3>
+<div class="content">
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
 
-        <div class="small" style="margin-top:10px">
-          Tip: apri la stessa stanza su due telefoni per testare chat e video.
-        </div>
-      </div>
-    </div>
+<button id="signup">Registrati</button>
+<button id="login" class="secondary">Login</button>
+<button id="logout" class="secondary">Logout</button>
 
-    <div class="box">
-      <h3>Stanza + Chat + Video</h3>
-      <div class="content">
-        <div class="row">
-          <select id="room"></select>
-          <button id="enter">Entra in stanza</button>
-          <button class="secondary" id="startVideo">Avvia video</button>
-        </div>
+<hr style="opacity:.2;margin:14px 0">
 
-        <div id="messages"></div>
-        <div id="composer">
-          <input id="text" placeholder="Scrivi..." />
-          <button id="send">Invia</button>
-        </div>
+<h3>Profilo</h3>
+<input id="nick" placeholder="Nick unico">
+<button id="saveProfile">Salva Nick</button>
+</div>
+</div>
 
-        <div id="video"></div>
-      </div>
-    </div>
-  </div>
+<div class="box">
+<h3>Stanza</h3>
+<div class="content">
+<select id="room"></select>
+<button id="enter">Entra</button>
+<button id="startVideo" class="secondary">Avvia Video</button>
 
-  <script src="https://meet.jit.si/external_api.js"></script>
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+<div id="messages"></div>
 
-    const SUPABASE_URL = "https://rslemfuzuoobslkrhqnx.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_zGJKajM_m40ZAf0B301ycg_iqsTIVSr";
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<input id="text" placeholder="Scrivi messaggio">
+<button id="send">Invia</button>
 
-    const el = (id)=>document.getElementById(id);
-    const who = el('who');
-    const email = el('email');
-    const pass = el('pass');
-    const nick = el('nick');
-    const country = el('country');
-    const interests = el('interests');
-    const roomSel = el('room');
-    const messages = el('messages');
-    const text = el('text');
+<div id="video"></div>
+</div>
+</div>
 
-    let user = null;
-    let room = null; // {id, slug, name}
-    let sub = null;
-    let jitsi = null;
+</div>
 
-    const fmt = (iso)=> new Date(iso).toLocaleString('it-IT',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
-    const esc = (s)=> (s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+<script src="https://meet.jit.si/external_api.js"></script>
+<script type="module">
 
-    function addMsg(m){
-      const div = document.createElement('div');
-      div.className = 'msg';
-      div.innerHTML = `<div class="meta"><b>${esc(m.nick)}</b> · ${fmt(m.created_at)}</div><div class="body">${esc(m.body)}</div>`;
-      messages.appendChild(div);
-      messages.scrollTop = messages.scrollHeight;
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://rslemfuzuoobslkrhqnx.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_zGJKajM_m40ZAf0B301ycg_iqsTIVSr";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const el=id=>document.getElementById(id);
+
+let user=null;
+let room=null;
+let channel=null;
+let jitsi=null;
+
+/* 🔐 Gestione conferma email */
+try{
+  const url=new URL(window.location.href);
+  if(url.searchParams.get("code")){
+    await supabase.auth.exchangeCodeForSession(window.location.href);
+    url.searchParams.delete("code");
+    window.history.replaceState({}, "", url.toString());
+  }
+}catch(e){}
+
+/* USER */
+async function refreshUser(){
+  const {data}=await supabase.auth.getUser();
+  user=data.user||null;
+  el("who").textContent=user?`Loggato: ${user.email}`:"Non loggato";
+}
+await refreshUser();
+
+/* SIGNUP */
+el("signup").onclick=async()=>{
+  const {error}=await supabase.auth.signUp({
+    email:el("email").value.trim(),
+    password:el("pass").value,
+    options:{
+      emailRedirectTo:"https://videochat26.github.io/videochat26/"
     }
+  });
+  if(error)return alert(error.message);
+  alert("Controlla email (anche spam)");
+};
 
-    async function refreshUser(){
-      const { data } = await supabase.auth.getUser();
-      user = data.user || null;
-      who.textContent = user ? `loggato: ${user.email}` : 'non loggato';
-    }
+/* LOGIN */
+el("login").onclick=async()=>{
+  const {error}=await supabase.auth.signInWithPassword({
+    email:el("email").value.trim(),
+    password:el("pass").value
+  });
+  if(error)return alert(error.message);
+  await refreshUser();
+};
 
-    async function loadRooms(){
-      const { data, error } = await supabase.from('rooms').select('*').order('id');
-      if(error) return alert(error.message);
-      roomSel.innerHTML = data.map(r=>`<option value="${r.slug}">${r.name}</option>`).join('');
-      const urlRoom = new URLSearchParams(location.search).get('room');
-      if(urlRoom && data.some(r=>r.slug===urlRoom)) roomSel.value = urlRoom;
-    }
+/* LOGOUT */
+el("logout").onclick=async()=>{
+  await supabase.auth.signOut();
+  await refreshUser();
+};
 
-    async function loadProfile(){
-      if(!user) return;
-      const { data } = await supabase.from('profiles').select('*').eq('user_id', user.id).maybeSingle();
-      if(data){
-        nick.value = data.nick || '';
-        country.value = data.country || '';
-        interests.value = (data.interests || []).join(', ');
-      }
-    }
+/* PROFILO */
+el("saveProfile").onclick=async()=>{
+  if(!user)return alert("Login prima");
+  const nick=el("nick").value.trim();
+  if(!nick)return alert("Inserisci nick");
+  const {error}=await supabase.from("profiles").upsert({
+    user_id:user.id,
+    nick
+  });
+  if(error)return alert(error.message);
+  alert("Nick salvato");
+};
 
-    async function saveProfile(){
-      if(!user) return alert("Fai login prima");
-      const n = nick.value.trim();
-      if(!n) return alert("Inserisci un nick");
-      const i = interests.value.split(',').map(s=>s.trim()).filter(Boolean).slice(0,10);
-      const payload = { user_id: user.id, nick: n, country: country.value.trim(), interests: i };
-      const { error } = await supabase.from('profiles').upsert(payload, { onConflict:'user_id' });
-      if(error) return alert(error.message);
-      alert("Profilo salvato");
-    }
+/* ROOMS */
+async function loadRooms(){
+  const {data}=await supabase.from("rooms").select("*").order("id");
+  el("room").innerHTML=data.map(r=>`<option value="${r.slug}">${r.name}</option>`).join("");
+}
+await loadRooms();
 
-    async function getRoom(slug){
-      const { data, error } = await supabase.from('rooms').select('*').eq('slug', slug).single();
-      if(error) throw error;
-      return data;
-    }
+/* ENTER ROOM */
+el("enter").onclick=async()=>{
+  if(!user)return alert("Login prima");
+  const slug=el("room").value;
+  const {data}=await supabase.from("rooms").select("*").eq("slug",slug).single();
+  room=data;
 
-    async function loadHistory(roomId){
-      messages.innerHTML = '';
-      const { data, error } = await supabase
-        .from('messages').select('*')
-        .eq('room_id', roomId)
-        .order('created_at', { ascending:true })
-        .limit(200);
-      if(error) return alert(error.message);
-      data.forEach(addMsg);
-    }
+  el("messages").innerHTML="";
 
-    async function enterRoom(){
-      if(!user) return alert("Devi fare login");
-      if(!nick.value.trim()) return alert("Salva prima un nick nel profilo");
+  const {data:history}=await supabase
+    .from("messages")
+    .select("*")
+    .eq("room_id",room.id)
+    .order("created_at",{ascending:true});
 
-      room = await getRoom(roomSel.value);
+  history.forEach(addMsg);
 
-      const url = new URL(location.href);
-      url.searchParams.set('room', room.slug);
-      history.replaceState({}, '', url.toString());
+  if(channel) supabase.removeChannel(channel);
 
-      await loadHistory(room.id);
+  channel=supabase.channel(`room:${room.slug}`)
+    .on('postgres_changes',
+      {event:'INSERT',schema:'public',table:'messages',filter:`room_id=eq.${room.id}`},
+      payload=>addMsg(payload.new)
+    )
+    .subscribe();
 
-      if(sub) supabase.removeChannel(sub);
-      sub = supabase.channel(`room:${room.slug}`)
-        .on('postgres_changes',
-          { event:'INSERT', schema:'public', table:'messages', filter:`room_id=eq.${room.id}` },
-          (payload)=> addMsg(payload.new)
-        )
-        .subscribe();
-      alert(`Sei entrato in: ${room.name}`);
-    }
+  alert("Entrato in "+room.name);
+};
 
-    async function sendMsg(){
-      if(!user || !room) return;
-      let body = text.value.trim();
-      if(!body) return;
-      if(body.length > 400) return alert("Max 400 caratteri");
+function addMsg(m){
+  const div=document.createElement("div");
+  div.className="msg";
+  div.innerHTML=`<div class="meta"><b>${m.nick}</b></div>${m.body}`;
+  el("messages").appendChild(div);
+  el("messages").scrollTop=el("messages").scrollHeight;
+}
 
-      // blocco link "soft" (poi lo rendiamo server-side con Edge Function)
-      if (/(https?:\/\/|www\.)/i.test(body)) return alert("Link non consentiti");
+/* SEND via Edge Function */
+el("send").onclick=async()=>{
+  if(!room)return;
+  const body=el("text").value.trim();
+  if(!body)return;
 
-      const { error } = await supabase.from('messages').insert({
-        room_id: room.id,
-        user_id: user.id,
-        nick: nick.value.trim(),
-        body
-      });
-      if(error) return alert(error.message);
+  const {data}=await supabase.auth.getSession();
+  const token=data.session?.access_token;
 
-      text.value = '';
-      text.focus();
-    }
+  const res=await fetch(`${SUPABASE_URL}/functions/v1/send_message`,{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "Authorization":`Bearer ${token}`
+    },
+    body:JSON.stringify({room_slug:room.slug,body})
+  });
 
-    function startVideo(){
-      if(!room) return alert("Entra prima in una stanza");
-      const node = document.getElementById('video');
-      node.innerHTML = '';
-      if(jitsi){ jitsi.dispose(); jitsi = null; }
+  const out=await res.json();
+  if(!out.ok)return alert(out.error);
 
-      jitsi = new JitsiMeetExternalAPI('meet.jit.si', {
-        roomName: `SVCHAT_${room.slug}`,
-        parentNode: node,
-        lang: 'it',
-        configOverwrite: { prejoinPageEnabled: true },
-        interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK:false, SHOW_WATERMARK_FOR_GUESTS:false }
-      });
-    }
+  el("text").value="";
+};
 
-    document.getElementById('signup').onclick = async ()=>{
-      const { error } = await supabase.auth.signUp({ email: email.value.trim(), password: pass.value });
-      if(error) return alert(error.message);
-      alert("Registrazione fatta. Se hai email confirmation attiva, controlla la mail.");
-      await refreshUser(); await loadProfile();
-    };
+/* VIDEO */
+el("startVideo").onclick=()=>{
+  if(!room)return alert("Entra in stanza prima");
+  const node=el("video");
+  node.innerHTML="";
+  if(jitsi) jitsi.dispose();
 
-    document.getElementById('login').onclick = async ()=>{
-      const { error } = await supabase.auth.signInWithPassword({ email: email.value.trim(), password: pass.value });
-      if(error) return alert(error.message);
-      await refreshUser(); await loadProfile();
-    };
+  jitsi=new JitsiMeetExternalAPI("meet.jit.si",{
+    roomName:`VIDEOCHAT26_${room.slug}`,
+    parentNode:node,
+    lang:"it"
+  });
+};
 
-    document.getElementById('logout').onclick = async ()=>{
-      await supabase.auth.signOut();
-      await refreshUser();
-    };
-
-    document.getElementById('saveProfile').onclick = saveProfile;
-    document.getElementById('enter').onclick = enterRoom;
-    document.getElementById('send').onclick = sendMsg;
-    document.getElementById('startVideo').onclick = startVideo;
-    text.addEventListener('keydown', (e)=>{ if(e.key==='Enter') sendMsg(); });
-
-    await refreshUser();
-    await loadRooms();
-    const urlRoom = new URLSearchParams(location.search).get('room');
-    if(urlRoom) roomSel.value = urlRoom;
-  </script>
+</script>
 </body>
 </html>

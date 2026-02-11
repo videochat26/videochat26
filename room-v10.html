@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Stanza • VideoChat26 (V10)</title>
+  <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+
+<!-- MARKER VISIBILE: se non lo vedi, NON stai caricando questo file -->
+<div style="position:sticky;top:0;z-index:9999;padding:10px 12px;background:#111827;color:#fff;border-bottom:1px solid rgba(255,255,255,.15);font-weight:900">
+  ✅ ROOM BUILD V10 (se non vedi questa riga, stai aprendo un file vecchio)
+</div>
+
+<header>
+  <div class="brand"><div class="logo">💬</div><div>VideoChat26</div></div>
+  <div class="pill" id="me">—</div>
+</header>
+
+<div class="container">
+  <div class="card">
+    <div class="roomTop">
+      <div>
+        <div style="font-family:'Bebas Neue'; letter-spacing:.7px; font-size:34px; line-height:1">VIDEOCHAT 26</div>
+        <div class="small">Utenti online: <b id="count">0</b></div>
+      </div>
+      <div class="actions" style="margin:0">
+        <button id="btnVideo" class="secondary">Apri Cam</button>
+        <button id="btnLogout" class="ghost">Esci</button>
+      </div>
+    </div>
+
+    <div class="roomWrap">
+      <div>
+        <div id="messages"></div>
+
+        <div class="row2" style="margin-top:10px;">
+          <div>
+            <label>Messaggio</label>
+            <input id="text" placeholder="Scrivi messaggio (pubblico o privato)">
+          </div>
+          <div style="display:flex;align-items:end;gap:10px">
+            <button id="send" style="flex:1">Pubblico</button>
+            <button id="sendDm" class="secondary" style="flex:1">Privato</button>
+          </div>
+        </div>
+
+        <div id="video" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="userList">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div><b>Utenti presenti</b></div>
+          <span class="pill" id="countPill">0</span>
+        </div>
+        <ul id="users"></ul>
+
+        <div class="hr"></div>
+
+        <label>Invia privato a</label>
+        <select id="dmTo"></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://meet.jit.si/external_api.js"></script>
+
+<script type="module">
+alert("ROOM V10 CARICATO ✅ (se non lo vedi, stai in cache/vecchio file)");
+
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+const SUPABASE_URL = "https://rslemfuzuoobslkrhqnx.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_zGJKajM_m40ZAf0B301ycg_iqsTIVSr";
+const ROOM_SLUG = "videochat26";
+const ROOM_TITLE = "VIDEOCHAT 26";
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const el = (id) => document.getElementById(id);
+
+let user=null, profile=null, room=null, channel=null, presenceState={}, jitsi=null;
+
+function esc(s){ return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
+function addMsg({type="public", nick, body, created_at, to_nick}){
+  const div=document.createElement("div");
+  div.className="msg";
+  const when=created_at ? new Date(created_at).toLocaleString("it-IT") : "";
+  const badge = type==="dm" ? ` <span class="pill" style="font-size:11px;">DM → ${esc(to_nick||"")}</span>` : "";
+  div.innerHTML = `<div class="meta"><b>${esc(nick||"—")}</b>${badge} · ${when}</div><div class="bubble">${esc(body||"")}</div>`;
+  el("messages").appendChild(div);
+  el("messages").scrollTop = el("messages").scrollHeight;
+}
+
+function renderUsers(){
+  const arr=[];
+  for(const k of Object.keys(presenceState)) for(const s of presenceState[k]) arr.push(s);
+  const m=new Map(); for(const u of arr) m.set(u.user_id,u);
+  const list=[...m.values()].sort((a,b)=>(a.nick||"").localeCompare(b.nick||"","it"));
+  el("users").innerHTML = list.map(u=>`<li><span>${esc(u.nick||"—")}</span><span class="pill" style="font-size:11px;">${esc(u.gender||"")}</span></li>`).join("");
+  el("count").textContent = String(list.length);
+  el("countPill").textContent = String(list.length);
+  const opts = list.filter(u=>u.user_id!==user.id).map(u=>`<option value="${esc(u.user_id)}">${esc(u.nick||"—")}</option>`).join("");
+  el("dmTo").innerHTML = opts || `<option value="">(nessun utente)</option>`;
+}
+
+async function requireLogin(){
+  const {data}=await supabase.auth.getUser();
+  user=data.user||null;
+  if(!user){ window.location.href="./auth.html"; return false; }
+
+  const {data:p}=await supabase.from("profiles").select("nick,gender").eq("user_id",user.id).limit(1);
+  profile = (p && p.length) ? p[0] : null;
+
+  const nick = profile?.nick || user.user_metadata?.nick || "Utente";
+  el("me").textContent = `Ciao, ${nick}`;
+  return true;
+}
+
+// ⚠️ QUI NON ESISTE single/maybeSingle: MAI “coerce”
+async function loadRoom(){
+  const {data, error} = await supabase
+    .from("rooms")
+    .select("*")
+    .eq("slug", ROOM_SLUG)
+    .order("id", {ascending:true})
+    .limit(5);
+
+  if(error) throw error;
+  if(!data || data.length===0) throw new Error(`Stanza non trovata: slug=${ROOM_SLUG}`);
+
+  console.log("ROOMS MATCH:", data);  // se hai duplicati li vedi qui
+  room = data[0];
+}
+
+async function loadHistory(){
+  el("messages").innerHTML="";
+  addMsg({nick:"Sistema", body:`Sei entrato nella stanza ${ROOM_TITLE}.`, created_at:new Date().toISOString()});
+
+  const {data:pub}=await supabase.from("messages").select("*").eq("room_id", room.id).order("created_at",{ascending:true});
+  (pub||[]).forEach(m=>addMsg({...m,type:"public"}));
+
+  const {data:dm}=await supabase.from("direct_messages").select("*").or(`to_user_id.eq.${user.id},from_user_id.eq.${user.id}`).order("created_at",{ascending:true});
+  (dm||[]).forEach(m=>addMsg({...m,type:"dm"}));
+}
+
+async function joinRealtime(){
+  if(channel){ try{supabase.removeChannel(channel)}catch(e){} channel=null; }
+
+  channel = supabase.channel(`room:${ROOM_SLUG}`, { config:{presence:{key:user.id}} });
+
+  channel
+    .on("presence",{event:"sync"},()=>{presenceState=channel.presenceState(); renderUsers();})
+    .on("presence",{event:"join"},()=>{presenceState=channel.presenceState(); renderUsers();})
+    .on("presence",{event:"leave"},()=>{presenceState=channel.presenceState(); renderUsers();})
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter:`room_id=eq.${room.id}`},(p)=>addMsg({...p.new,type:"public"}))
+    .on("postgres_changes",{event:"INSERT",schema:"public",table:"direct_messages",filter:`to_user_id=eq.${user.id}`},(p)=>addMsg({...p.new,type:"dm"}))
+    .subscribe(async (status)=>{
+      if(status==="SUBSCRIBED"){
+        const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
+        const myGender = profile?.gender || user.user_metadata?.gender || "";
+        await channel.track({user_id:user.id,nick:myNick,gender:myGender,at:Date.now()});
+      }
+    });
+}
+
+async function sendPublic(){
+  const body=(el("text").value||"").trim(); if(!body) return;
+  const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
+  const {error}=await supabase.from("messages").insert({room_id:room.id,user_id:user.id,nick:myNick,body});
+  if(error) return alert("Errore invio: "+error.message);
+  el("text").value="";
+}
+
+async function sendDM(){
+  const to=el("dmTo").value; if(!to) return;
+  const body=(el("text").value||"").trim(); if(!body) return;
+  const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
+  let toNick="";
+  for(const k of Object.keys(presenceState)) for(const s of presenceState[k]) if(s.user_id===to) toNick=s.nick||"";
+  const {error}=await supabase.from("direct_messages").insert({from_user_id:user.id,to_user_id:to,nick:myNick,to_nick:toNick,body});
+  if(error) return alert("Errore DM: "+error.message);
+  addMsg({type:"dm",nick:myNick,to_nick:toNick,body,created_at:new Date().toISOString()});
+  el("text").value="";
+}
+
+function startVideo(){
+  const node=el("video"); node.innerHTML="";
+  if(jitsi){ try{jitsi.dispose()}catch(e){} jitsi=null; }
+  jitsi = new JitsiMeetExternalAPI("meet.jit.si",{roomName:`VIDEOCHAT26_${room.slug}`,parentNode:node,lang:"it"});
+}
+
+async function exitRoom(){
+  try{ if(channel){supabase.removeChannel(channel); channel=null;} }catch(e){}
+  try{ if(jitsi){jitsi.dispose(); jitsi=null;} }catch(e){}
+  await supabase.auth.signOut();
+  window.location.href="./index.html";
+}
+
+el("send").onclick=sendPublic;
+el("sendDm").onclick=sendDM;
+el("btnVideo").onclick=startVideo;
+el("btnLogout").onclick=exitRoom;
+
+(async function init(){
+  const ok = await requireLogin(); if(!ok) return;
+  try{ await loadRoom(); } catch(e){ alert("Errore stanza: "+(e.message||e)); return; }
+  await loadHistory();
+  await joinRealtime();
+})();
+</script>
+</body>
+</html>

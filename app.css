@@ -1,0 +1,113 @@
+:root{
+  --bg:#0b0f19;
+  --panel:#0f172a;
+  --panel2:#0b1224;
+  --text:#e5e7eb;
+  --muted:#9ca3af;
+  --border:rgba(255,255,255,.12);
+  --shadow:0 18px 45px rgba(0,0,0,.35);
+  --ok:#22c55e;
+  --btn:#22c55e;
+  --btn2:#334155;
+  --danger:#ef4444;
+  --pill:rgba(255,255,255,.08);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:
+    radial-gradient(1000px 500px at 30% -10%, rgba(34,197,94,.18), transparent 60%),
+    radial-gradient(900px 500px at 90% 0%, rgba(59,130,246,.14), transparent 55%),
+    var(--bg);
+  color:var(--text);
+}
+a{color:inherit}
+.container{max-width:1100px;margin:0 auto;padding:14px 12px 22px;}
+.card{
+  background:rgba(15,23,42,.92);
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+}
+header{
+  padding:12px;
+  background:rgba(15,23,42,.92);
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:sticky;top:0;backdrop-filter:blur(10px);z-index:5;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900}
+.logo{
+  width:34px;height:34px;border-radius:12px;
+  display:grid;place-items:center;
+  background:rgba(34,197,94,.12);
+  border:1px solid rgba(34,197,94,.25);
+}
+.pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 10px;border-radius:999px;
+  background:var(--pill);border:1px solid var(--border);
+  color:var(--muted);font-size:13px;
+}
+.hero{padding:18px;text-align:center}
+.hero h1{margin:0;font-family:"Bebas Neue",system-ui;letter-spacing:.8px;font-size:clamp(34px, 5vw, 56px)}
+.hero p{margin:6px 0 0;color:var(--muted)}
+.grid{display:grid;grid-template-columns:360px 1fr;gap:12px}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
+.box{padding:14px}
+h3{margin:0 0 10px 0;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+input,select{
+  padding:11px 12px;border-radius:12px;border:1px solid var(--border);
+  background:rgba(11,18,36,.85);color:var(--text);width:100%;
+  outline:none;
+}
+input:focus,select:focus{border-color:rgba(34,197,94,.35)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.row2{grid-template-columns:1fr}}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+button{
+  padding:11px 12px;border-radius:12px;border:0;background:var(--btn);
+  font-weight:900;cursor:pointer;color:#04130a;
+}
+button.secondary{background:var(--btn2);color:#fff;border:1px solid var(--border)}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.alert{
+  padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+  background:rgba(11,18,36,.7);font-size:13px;display:none;margin-bottom:10px
+}
+.alert.ok{border-color:rgba(34,197,94,.35); background:rgba(34,197,94,.10)}
+.alert.err{border-color:rgba(239,68,68,.35); background:rgba(239,68,68,.10)}
+.small{font-size:12px;color:var(--muted);line-height:1.35}
+.hr{height:1px;background:var(--border);margin:12px 0;opacity:.85}
+
+/* Room */
+.roomTop{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+.roomWrap{display:grid;grid-template-columns: 1fr 320px;gap:12px;padding:12px}
+@media (max-width:980px){.roomWrap{grid-template-columns:1fr}}
+#messages{
+  height:44vh;overflow:auto;padding:12px;background:rgba(11,18,36,.55);
+  border-radius:14px;border:1px solid var(--border);
+}
+.msg{margin-bottom:10px}
+.meta{font-size:12px;color:var(--muted);margin-bottom:4px}
+.bubble{display:inline-block;padding:10px 12px;border-radius:14px;border:1px solid var(--border);background:rgba(15,23,42,.85)}
+#video{
+  height:45vh;border-radius:14px;overflow:hidden;border:1px solid var(--border);
+  background:rgba(11,18,36,.55);
+}
+.userList{
+  padding:12px;border-radius:14px;border:1px solid var(--border);
+  background:rgba(11,18,36,.55);
+}
+.userList ul{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.userList li{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:8px 10px;border-radius:12px;border:1px solid var(--border);
+  background:rgba(15,23,42,.85);
+}

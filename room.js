@@ -1,17 +1,37 @@
-import { supabase, el, showAlert, hideAlert, getUser, getMyProfile, logout } from "./app.js";
-import { SUPABASE_URL, ROOM_SLUG, ROOM_NAME } from "./config.js";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
+/* =============================
+   CONFIG
+============================= */
+const SUPABASE_URL = "https://rslemfuzuoobslkrhqnx.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_zGJKajM_m40ZAf0B301ycg_iqsTIVSr";
+
+const ROOM_SLUG = "videochat26";       // deve esistere in public.rooms.slug
+const ROOM_TITLE = "VIDEOCHAT 26";     // solo UI
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const el = (id) => document.getElementById(id);
+
+/* =============================
+   STATE
+============================= */
 let user = null;
 let profile = null;
-let room = { slug: ROOM_SLUG, name: ROOM_NAME }; // stanza unica fissa
+let room = null;
+
 let channel = null;
 let presenceState = {};
 let jitsi = null;
 
+/* =============================
+   HELPERS
+============================= */
 function esc(str){
-  return String(str)
-    .replaceAll("&","&amp;").replaceAll("<","&lt;")
-    .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+  return String(str ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
 
@@ -21,13 +41,14 @@ function addMsg({ type="public", nick, body, created_at, to_nick }){
 
   const when = created_at ? new Date(created_at).toLocaleString("it-IT") : "";
   const badge = type === "dm"
-    ? ` <span class="pill" style="font-size:11px;">DM → ${esc(to_nick||"")}</span>`
+    ? ` <span class="pill" style="font-size:11px;">DM → ${esc(to_nick || "")}</span>`
     : "";
 
   div.innerHTML = `
-    <div class="meta"><b>${esc(nick||"—")}</b>${badge} · ${when}</div>
-    <div class="bubble">${esc(body||"")}</div>
+    <div class="meta"><b>${esc(nick || "—")}</b>${badge} · ${when}</div>
+    <div class="bubble">${esc(body || "")}</div>
   `;
+
   el("messages").appendChild(div);
   el("messages").scrollTop = el("messages").scrollHeight;
 }
@@ -35,30 +56,26 @@ function addMsg({ type="public", nick, body, created_at, to_nick }){
 function renderUsers(){
   const users = [];
   for(const k of Object.keys(presenceState)){
-    for(const sess of presenceState[k]){
-      users.push(sess);
-    }
+    for(const sess of presenceState[k]) users.push(sess);
   }
 
-  // dedup per user_id (in caso di multi-tab)
+  // dedup per user_id (multi-tab)
   const map = new Map();
-  for(const u of users){
-    map.set(u.user_id, u);
-  }
-  const list = Array.from(map.values())
-    .sort((a,b)=> (a.nick||"").localeCompare(b.nick||"", "it"));
+  for(const u of users) map.set(u.user_id, u);
+
+  const list = Array.from(map.values()).sort((a,b)=> (a.nick||"").localeCompare(b.nick||"", "it"));
 
   el("users").innerHTML = list.map(u => `
     <li>
       <span>${esc(u.nick || "—")}</span>
-      <span class="pill" style="font-size:11px">${esc(u.gender || "")}</span>
+      <span class="pill" style="font-size:11px;">${esc(u.gender || "")}</span>
     </li>
   `).join("");
 
   el("count").textContent = String(list.length);
   el("countPill").textContent = String(list.length);
 
-  // DM select (escludo me)
+  // select DM (escludo me)
   const opts = list
     .filter(u => u.user_id !== user.id)
     .map(u => `<option value="${esc(u.user_id)}">${esc(u.nick || "—")}</option>`)
@@ -67,22 +84,81 @@ function renderUsers(){
   el("dmTo").innerHTML = opts || `<option value="">(nessun utente)</option>`;
 }
 
+/* =============================
+   AUTH + PROFILE
+============================= */
 async function requireLogin(){
-  user = await getUser();
+  const { data } = await supabase.auth.getUser();
+  user = data.user || null;
+
   if(!user){
+    // se non loggato, torna alla pagina di auth/index
     window.location.href = "./auth.html";
     return false;
   }
-  profile = await getMyProfile(user);
+
+  const { data: p } = await supabase
+    .from("profiles")
+    .select("nick, gender")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  profile = p || null;
 
   const nick = profile?.nick || user.user_metadata?.nick || "Utente";
-  el("me").textContent = `Ciao, ${nick}`;
+  el("me").textContent = `Ciao, ${nick}`; // SOLO NICK
+
   return true;
 }
 
-async function joinPresence(){
-  // channel realtime con presence
-  if(channel) { try { supabase.removeChannel(channel); } catch(e){} }
+/* =============================
+   ROOM: load room by slug
+============================= */
+async function loadRoom(){
+  const { data, error } = await supabase
+    .from("rooms")
+    .select("*")
+    .eq("slug", ROOM_SLUG)
+    .single();
+
+  if(error) throw error;
+  room = data;
+}
+
+/* =============================
+   HISTORY
+============================= */
+async function loadHistory(){
+  el("messages").innerHTML = "";
+  addMsg({ nick:"Sistema", body:`Sei entrato nella stanza ${ROOM_TITLE}.`, created_at:new Date().toISOString() });
+
+  // pubblici: messages.room_id
+  const { data: pub, error: e1 } = await supabase
+    .from("messages")
+    .select("*")
+    .eq("room_id", room.id)
+    .order("created_at", { ascending:true });
+
+  if(!e1 && pub) pub.forEach(m => addMsg({ ...m, type:"public" }));
+
+  // DM: inbox + outbox
+  const { data: dm, error: e2 } = await supabase
+    .from("direct_messages")
+    .select("*")
+    .or(`to_user_id.eq.${user.id},from_user_id.eq.${user.id}`)
+    .order("created_at", { ascending:true });
+
+  if(!e2 && dm) dm.forEach(m => addMsg({ ...m, type:"dm" }));
+}
+
+/* =============================
+   REALTIME + PRESENCE
+============================= */
+async function joinRealtime(){
+  if(channel){
+    try { supabase.removeChannel(channel); } catch(e){}
+    channel = null;
+  }
 
   channel = supabase.channel(`room:${ROOM_SLUG}`, {
     config: { presence: { key: user.id } }
@@ -101,16 +177,19 @@ async function joinPresence(){
       presenceState = channel.presenceState();
       renderUsers();
     })
-    // pubblico: messages table
+
+    // pubblici: INSERT su messages filtrati per room_id
     .on("postgres_changes",
-      { event:"INSERT", schema:"public", table:"messages", filter:`room_slug=eq.${ROOM_SLUG}` },
+      { event:"INSERT", schema:"public", table:"messages", filter:`room_id=eq.${room.id}` },
       (payload) => addMsg({ ...payload.new, type:"public" })
     )
-    // privati: direct_messages dove il destinatario sono io
+
+    // DM: INSERT dove io sono destinatario
     .on("postgres_changes",
       { event:"INSERT", schema:"public", table:"direct_messages", filter:`to_user_id=eq.${user.id}` },
       (payload) => addMsg({ ...payload.new, type:"dm" })
     )
+
     .subscribe(async (status) => {
       if(status === "SUBSCRIBED"){
         const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
@@ -120,35 +199,17 @@ async function joinPresence(){
     });
 }
 
-async function loadHistory(){
-  // pubblico (se hai già messages con room_id, dimmelo e lo adatto: qui uso room_slug fisso)
-  const { data: pub, error: e1 } = await supabase
-    .from("messages")
-    .select("*")
-    .eq("room_slug", ROOM_SLUG)
-    .order("created_at", { ascending:true });
-
-  if(!e1 && pub) pub.forEach(m => addMsg({ ...m, type:"public" }));
-
-  // DM ricevuti
-  const { data: dm, error: e2 } = await supabase
-    .from("direct_messages")
-    .select("*")
-    .eq("to_user_id", user.id)
-    .order("created_at", { ascending:true });
-
-  if(!e2 && dm) dm.forEach(m => addMsg({ ...m, type:"dm" }));
-}
-
+/* =============================
+   SEND PUBLIC
+============================= */
 async function sendPublic(){
-  const body = el("text").value.trim();
+  const body = (el("text").value || "").trim();
   if(!body) return;
 
-  // se vuoi continuare con Edge Function: la lasciamo (ma serve room_id/slug). Qui faccio insert diretto.
   const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
 
   const { error } = await supabase.from("messages").insert({
-    room_slug: ROOM_SLUG,
+    room_id: room.id,         // ✅ schema reale
     user_id: user.id,
     nick: myNick,
     body
@@ -158,29 +219,33 @@ async function sendPublic(){
     alert("Errore invio: " + error.message);
     return;
   }
+
   el("text").value = "";
 }
 
+/* =============================
+   SEND DM
+============================= */
 async function sendDM(){
-  const to = el("dmTo").value;
-  if(!to) return;
+  const toUserId = el("dmTo").value;
+  if(!toUserId) return;
 
-  const body = el("text").value.trim();
+  const body = (el("text").value || "").trim();
   if(!body) return;
 
   const myNick = profile?.nick || user.user_metadata?.nick || "Utente";
 
-  // per mostrare “DM → nick” in UI, mi prendo il nick dal presence state
+  // prendo nick destinatario dal presence state
   let toNick = "";
   for(const k of Object.keys(presenceState)){
     for(const s of presenceState[k]){
-      if(s.user_id === to) toNick = s.nick || "";
+      if(s.user_id === toUserId) toNick = s.nick || "";
     }
   }
 
   const { error } = await supabase.from("direct_messages").insert({
     from_user_id: user.id,
-    to_user_id: to,
+    to_user_id: toUserId,
     nick: myNick,
     to_nick: toNick,
     body
@@ -191,44 +256,75 @@ async function sendDM(){
     return;
   }
 
-  // mostro anche localmente “DM → …”
+  // mostro subito anche localmente
   addMsg({ type:"dm", nick: myNick, to_nick: toNick, body, created_at: new Date().toISOString() });
   el("text").value = "";
 }
 
+/* =============================
+   VIDEO (Jitsi)
+============================= */
 function startVideo(){
   const node = el("video");
   node.innerHTML = "";
-  if(jitsi) { try{ jitsi.dispose(); }catch(e){} jitsi=null; }
+  if(jitsi){
+    try { jitsi.dispose(); } catch(e){}
+    jitsi = null;
+  }
 
   jitsi = new JitsiMeetExternalAPI("meet.jit.si",{
-    roomName:`VIDEOCHAT26_${ROOM_SLUG}`,
+    roomName: `VIDEOCHAT26_${room.slug}`,
     parentNode: node,
-    lang:"it"
+    lang: "it"
   });
 }
 
-el("send").onclick = sendPublic;
-el("sendDm").onclick = sendDM;
-el("text").addEventListener("keydown", (e)=>{ if(e.key==="Enter") sendPublic(); });
-
-el("btnVideo").onclick = startVideo;
-el("btnLogout").onclick = async () => {
+/* =============================
+   LOGOUT/EXIT
+============================= */
+async function exitRoom(){
   try{
-    if(channel) supabase.removeChannel(channel);
+    if(channel){ supabase.removeChannel(channel); channel = null; }
   }catch(e){}
-  await logout();
-  window.location.href = "./index.html";
-};
 
+  try{
+    if(jitsi){ jitsi.dispose(); jitsi = null; }
+  }catch(e){}
+
+  await supabase.auth.signOut();
+  window.location.href = "./index.html";
+}
+
+/* =============================
+   WIRE UI
+============================= */
+function wireUI(){
+  el("send").onclick = sendPublic;
+  el("sendDm").onclick = sendDM;
+
+  el("text").addEventListener("keydown", (e)=>{
+    if(e.key === "Enter") sendPublic();
+  });
+
+  el("btnVideo").onclick = startVideo;
+  el("btnLogout").onclick = exitRoom;
+}
+
+/* =============================
+   INIT
+============================= */
 (async function init(){
   const ok = await requireLogin();
   if(!ok) return;
 
-  // pulisco chat UI
-  el("messages").innerHTML = "";
-  addMsg({ nick:"Sistema", body:"Sei entrato nella stanza VIDEOCHAT 26.", created_at:new Date().toISOString(), type:"public" });
+  try{
+    await loadRoom();
+  }catch(e){
+    alert("Errore stanza (rooms): " + (e.message || e));
+    return;
+  }
 
+  wireUI();
   await loadHistory();
-  await joinPresence();
+  await joinRealtime();
 })();

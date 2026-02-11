@@ -4,6 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Stanza • VideoChat26</title>
+
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./app.css">
 </head>
@@ -32,11 +33,11 @@
 
         <div class="row2" style="margin-top:10px;">
           <div>
-            <label>Messaggio pubblico</label>
-            <input id="text" placeholder="Scrivi messaggio (pubblico)">
+            <label>Messaggio</label>
+            <input id="text" placeholder="Scrivi messaggio (pubblico o privato)">
           </div>
           <div style="display:flex;align-items:end;gap:10px">
-            <button id="send" style="flex:1">Invia</button>
+            <button id="send" style="flex:1">Pubblico</button>
             <button id="sendDm" class="secondary" style="flex:1">Privato</button>
           </div>
         </div>
@@ -53,6 +54,7 @@
           <div><b>Utenti presenti</b></div>
           <span class="pill" id="countPill">0</span>
         </div>
+
         <ul id="users"></ul>
 
         <div class="hr"></div>
@@ -66,6 +68,7 @@
 </div>
 
 <script src="https://meet.jit.si/external_api.js"></script>
-<script type="module" src="./room.js"></script>
+<!-- cache-buster -->
+<script type="module" src="./room.js?v=8"></script>
 </body>
 </html>
